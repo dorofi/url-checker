@@ -1,8 +1,5 @@
 # URL Checker
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/dorofi/url-checker/rust.yml?branch=main)](https://github.com/dorofi/url-checker/actions)
-[![License](https://img.shields.io/github/license/dorofi/url-checker)](https://github.com/dorofi/url-checker/blob/main/LICENSE)
-
 A simple and fast asynchronous tool written in Rust to check the status of a list of URLs. It concurrently sends requests, measures response time, gets the HTTP status, and saves the results to a CSV file for analysis.
 
 ## How to Run
