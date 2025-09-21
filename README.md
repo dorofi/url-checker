@@ -1,46 +1,37 @@
 # URL Checker
 
-[![Статус сборки](https://img.shields.io/github/actions/workflow/status/dorofi/url-checker/rust.yml?branch=main)](https://github.com/dorofi/url-checker/actions)
-[![Лицензия](https://img.shields.io/github/license/dorofi/url-checker)](https://github.com/dorofi/url-checker/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/dorofi/url-checker/rust.yml?branch=main)](https://github.com/dorofi/url-checker/actions)
+[![License](https://img.shields.io/github/license/dorofi/url-checker)](https://github.com/dorofi/url-checker/blob/main/LICENSE)
 
-`url-checker` — это простой и быстрый асинхронный инструмент на Rust для проверки доступности URL-адресов. Он параллельно отправляет запросы к списку URL, измеряет время ответа, получает HTTP-статус и сохраняет результаты в CSV-файл для дальнейшего анализа.
+A simple and fast asynchronous tool written in Rust to check the status of a list of URLs. It concurrently sends requests, measures response time, gets the HTTP status, and saves the results to a CSV file for analysis.
 
----
+## How to Run
 
-A lightweight and fast asynchronous URL checker written in Rust. It concurrently checks a list of URLs, reports their status and response time, and saves the results to a CSV file.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/dorofi/url-checker.git
+    cd url-checker
+    ```
 
-## ✨ Возможности / Features
+2.  **Create `urls.txt` file:**
+    Create a file named `urls.txt` in the project's root directory and add a list of URLs, one per line.
 
-*   **Асинхронная проверка**: Использует асинхронную среду выполнения Tokio для одновременной проверки сотен URL-адресов.
-*   **Подробные результаты**: Для каждого URL выводится статус-код HTTP, время ответа и возможная ошибка.
-*   **Экспорт в CSV**: Все результаты автоматически сохраняются в файл `results.csv`.
-*   **Простота использования**: Требуется только текстовый файл со списком URL.
-*   **Кроссплатформенность**: Работает на Windows, macOS и Linux.
+    **Example `urls.txt`:**
+    ```
+    https://google.com
+    https://github.com
+    https://example.com/non-existent-page
+    ```
 
----
+3.  **Run the checker:**
+    The easiest way is to use Cargo. This command will check the URLs from `urls.txt` and save the results to `report.csv`.
+    ```bash
+    cargo run --release
+    ```
 
-*   **Asynchronous Checking**: Leverages the Tokio async runtime to check hundreds of URLs concurrently.
-*   **Detailed Results**: For each URL, it provides the HTTP status code, response time, and any potential errors.
-*   **CSV Export**: All results are automatically saved to a `results.csv` file.
-*   **Simple to Use**: Just provide a text file with a list of URLs.
-*   **Cross-Platform**: Works on Windows, macOS, and Linux.
-
-## 🚀 Установка / Installation
-
-### Предварительные требования / Prerequisites
-
-Для сборки проекта вам понадобится Rust. / You need to have Rust installed to build the project.
-
-### Сборка из исходного кода / Building from Source
-
-1.  Клонируйте репозиторий / Clone the repository:
-```bash
-git clone https://github.com/dorofi/url-checker.git
-```
-2.  Перейдите в директорию проекта / Navigate to the project directory:
-```bash
-cd url-checker
-```
-3.  Соберите проект в release-режиме / Build the project in release mode:
-```bash
-cargo build --release
+    **Example Output:**
+    ```
+    https://google.com 200 (56 ms)
+    https://github.com 200 (123 ms)
+    https://example.com/non-existent-page 404 (89 ms)
+    ```
