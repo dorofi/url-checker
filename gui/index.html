@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Checker - Professional Web Status Monitor</title>
+    <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 URL Checker</h1>
+            <p class="subtitle">Professional Web Status Monitor</p>
+        </header>
+
+        <div class="main-content">
+            <div class="config-panel">
+                <h2>Configuration</h2>
+                <div class="form-group">
+                    <label for="urls-input">URLs (one per line):</label>
+                    <textarea id="urls-input" rows="8" placeholder="https://google.com&#10;https://github.com&#10;https://rust-lang.org"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="concurrency">Concurrency:</label>
+                        <input type="number" id="concurrency" value="20" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="timeout">Timeout (seconds):</label>
+                        <input type="number" id="timeout" value="10" min="1" max="300">
+                    </div>
+                </div>
+                <button id="check-btn" class="btn-primary">Check URLs</button>
+            </div>
+
+            <div class="results-panel">
+                <h2>Results</h2>
+                <div id="stats" class="stats-container"></div>
+                <div id="results-table" class="results-table"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tauri API script - must be loaded before main.js -->
+    <script>
+        // Check if running in Tauri
+        window.__TAURI_CHECK__ = typeof window.__TAURI_IPC__ !== 'undefined' || 
+                                 typeof window.__TAURI_METADATA__ !== 'undefined';
+    </script>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
+

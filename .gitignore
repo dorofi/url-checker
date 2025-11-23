@@ -2,3 +2,11 @@ target/
 *.rs.bk
 Cargo.lock
 *.csv
+*.json
+!package.json
+node_modules/
+gui/node_modules/
+gui/dist/
+gui/src-tauri/target/
+.DS_Store
+*.log

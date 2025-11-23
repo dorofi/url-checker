@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="URL Checker - Professional Web Status Monitor. Fast, async URL monitoring tool written in Rust.">
+    <title>URL Checker - Professional Web Status Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+        }
+
+        header h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 25px 0 15px 0;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            color: white;
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .code-block code {
+            color: #9cdcfe;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 10px 10px 10px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #667eea;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🌐 URL Checker</h1>
+            <p>Professional Web Status Monitor</p>
+            <div class="badges">
+                <span class="badge">⚡ Lightning Fast</span>
+                <span class="badge">🎨 Beautiful UI</span>
+                <span class="badge">📊 Detailed Stats</span>
+                <span class="badge">🦀 Built with Rust</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="content">
+            <section class="section">
+                <h2>🚀 What is URL Checker?</h2>
+                <p>
+                    <strong>URL Checker</strong> is a high-performance, asynchronous tool written in Rust that allows you to monitor 
+                    the status of hundreds of URLs simultaneously. Whether you're a developer checking API endpoints, 
+                    a DevOps engineer monitoring service health, or a website owner tracking uptime, URL Checker provides 
+                    professional-grade monitoring with beautiful output and comprehensive reporting.
+                </p>
+                <p style="margin-top: 15px;">
+                    <strong>Note:</strong> This webpage (<code>index.html</code>) is an <strong>informational landing page</strong> 
+                    that explains the project. The actual URL checking functionality is available through:
+                </p>
+                <ul style="margin-top: 10px;">
+                    <li>🖥️ <strong>Command Line Interface (CLI)</strong> - Run from terminal</li>
+                    <li>🖥️ <strong>Desktop GUI Application</strong> - Beautiful graphical interface (see Desktop GUI section)</li>
+                </ul>
+                <p style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <strong>Why doesn't this webpage work as an app?</strong> This is just a static HTML page for documentation. 
+                    The desktop GUI application uses Tauri framework which requires a Rust backend - it cannot run in a regular browser. 
+                    To use the GUI, you need to run the desktop application (see Desktop GUI section below).
+                </p>
+            </section>
+
+            <section class="section">
+                <h2>✨ Key Features</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>⚡ Lightning Fast</h3>
+                        <p>Concurrent async requests with configurable concurrency. Check hundreds of URLs in seconds.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎨 Beautiful Output</h3>
+                        <p>Color-coded terminal interface with progress bars, tables, and detailed statistics.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📊 Detailed Statistics</h3>
+                        <p>Response times, success rates, data transfer metrics, and comprehensive reporting.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📁 Multiple Formats</h3>
+                        <p>Export results to CSV with timestamps and metadata for further analysis.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔧 Highly Configurable</h3>
+                        <p>Customizable timeouts, concurrency levels, and output formats to fit your needs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🖥️ Cross-Platform</h3>
+                        <p>Works seamlessly on Linux, Windows, and macOS with a single codebase.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🖥️ Desktop GUI</h3>
+                        <p>Beautiful desktop application with modern interface and real-time updates.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📄 JSON Export</h3>
+                        <p>Export results to JSON format with metadata for programmatic analysis.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>📦 Installation</h2>
+                
+                <h3>Command Line Tool (CLI)</h3>
+                <h4>Prerequisites</h4>
+                <ul>
+                    <li><a href="https://www.rust-lang.org/tools/install" target="_blank">Rust</a> 1.70 or later</li>
+                    <li>Internet connection</li>
+                </ul>
+
+                <h4>Quick Start</h4>
+                <div class="code-block">
+                    <code>
+# Clone the repository<br>
+git clone https://github.com/dorofi/url-checker.git<br>
+cd url-checker<br><br>
+# Build the project<br>
+cargo build --release<br><br>
+# Run it!<br>
+cargo run --release
+                    </code>
+                </div>
+
+                <h3>Desktop GUI Application</h3>
+                <h4>Prerequisites</h4>
+                <ul>
+                    <li><a href="https://www.rust-lang.org/tools/install" target="_blank">Rust</a> 1.70 or later</li>
+                    <li><a href="https://nodejs.org/" target="_blank">Node.js</a> v16 or later</li>
+                    <li>System dependencies (see Desktop GUI section below)</li>
+                </ul>
+
+                <h4>Installation</h4>
+                <div class="code-block">
+                    <code>
+# 1. Install system dependencies (Linux)<br>
+sudo apt-get update && sudo apt-get install -y \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;libwebkit2gtk-4.0-dev build-essential \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;libssl-dev libgtk-3-dev \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;libayatana-appindicator3-dev librsvg2-dev pkg-config<br><br>
+# 2. Install Tauri CLI<br>
+cargo install tauri-cli<br><br>
+# 3. Navigate to GUI directory<br>
+cd gui<br><br>
+# 4. Install dependencies<br>
+npm install<br><br>
+# 5. Run the desktop app<br>
+npm run tauri:dev
+                    </code>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>💻 Usage Examples</h2>
+                
+                <h3>Command Line (CLI)</h3>
+                <div class="code-block">
+                    <code>
+# Basic usage<br>
+cargo run --release<br><br>
+# High concurrency (50 simultaneous requests)<br>
+cargo run --release -- -c 50<br><br>
+# Custom timeout (30 seconds)<br>
+cargo run --release -- -t 30<br><br>
+# Custom input/output files<br>
+cargo run --release -- -i my-urls.txt -o my-report.csv<br><br>
+# Export to JSON<br>
+cargo run --release -- -i urls.txt -o report.json --format json
+                    </code>
+                </div>
+
+                <h3>Desktop GUI Application</h3>
+                <p>
+                    Simply run <code>npm run tauri:dev</code> in the <code>gui/</code> directory. 
+                    A desktop window will open where you can:
+                </p>
+                <ul>
+                    <li>Enter URLs directly in the text area</li>
+                    <li>Configure concurrency and timeout settings</li>
+                    <li>Click "Check URLs" to start monitoring</li>
+                    <li>View real-time results and statistics</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2>📊 Output Preview</h2>
+                <p>
+                    URL Checker provides a professional terminal interface with:
+                </p>
+                <ul>
+                    <li><span class="highlight">Color-coded status codes</span> - Green for success, yellow for redirects, red for errors</li>
+                    <li><span class="highlight">Progress bar</span> - Real-time progress with percentage and ETA</li>
+                    <li><span class="highlight">Detailed statistics</span> - Success rates, response times, data transfer</li>
+                    <li><span class="highlight">CSV reports</span> - Comprehensive data export for analysis</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2>🎯 Use Cases</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>🔍 API Monitoring</h3>
+                        <p>Monitor API endpoints for availability and response times.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🌐 Website Health Checks</h3>
+                        <p>Track website uptime and performance metrics.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🚨 Service Monitoring</h3>
+                        <p>Keep an eye on critical services and infrastructure.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📈 Performance Analysis</h3>
+                        <p>Analyze response times and identify slow endpoints.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>🖥️ Desktop GUI Application</h2>
+                <p>
+                    URL Checker includes a <strong>beautiful desktop application</strong> built with Tauri! 
+                    Get a modern graphical interface with real-time updates, visual statistics, and an intuitive design.
+                </p>
+                
+                <h3>What is Tauri?</h3>
+                <p>
+                    Tauri is a framework that combines web technologies (HTML, CSS, JavaScript) with a Rust backend 
+                    to create lightweight, secure desktop applications. The GUI uses web technologies for the interface, 
+                    while Rust handles the heavy lifting of URL checking.
+                </p>
+
+                <h3>How to Run the Desktop App</h3>
+                
+                <div class="code-block">
+                    <code>
+# 1. Install system dependencies (Linux)<br>
+sudo apt-get update && sudo apt-get install -y \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;libwebkit2gtk-4.0-dev build-essential \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;libssl-dev libgtk-3-dev \<br>
+&nbsp;&nbsp;&nbsp;&nbsp;libayatana-appindicator3-dev librsvg2-dev pkg-config<br><br>
+# 2. Install Tauri CLI<br>
+cargo install tauri-cli<br><br>
+# 3. Navigate to GUI directory<br>
+cd gui<br><br>
+# 4. Install Node.js dependencies<br>
+npm install<br><br>
+# 5. Run the application<br>
+npm run tauri:dev
+                    </code>
+                </div>
+
+                <p style="margin-top: 20px;">
+                    <strong>Note:</strong> The first build takes 5-10 minutes as Rust compiles dependencies. 
+                    Subsequent builds are much faster!
+                </p>
+
+                <h3>Desktop App Features</h3>
+                <ul>
+                    <li>🎨 Modern, beautiful interface</li>
+                    <li>⚡ Real-time URL checking with live updates</li>
+                    <li>📊 Visual statistics dashboard</li>
+                    <li>🎯 Color-coded status indicators</li>
+                    <li>⚙️ Configurable settings (concurrency, timeout)</li>
+                    <li>📋 Results table with detailed information</li>
+                    <li>🖥️ Native desktop window (not a browser)</li>
+                </ul>
+
+                <p style="margin-top: 20px;">
+                    <strong>Why Desktop App?</strong> Desktop applications provide better performance, 
+                    native system integration, and don't require a web server. Perfect for monitoring 
+                    URLs locally with a professional interface!
+                </p>
+            </section>
+
+            <section class="section">
+                <h2>🤝 Open Source & Free</h2>
+                <p>
+                    URL Checker is <strong>completely free and open source</strong>. Everyone is welcome to use it, 
+                    contribute to it, and improve it. Whether you're a beginner learning Rust or an experienced developer 
+                    looking for a reliable monitoring tool, URL Checker is for you!
+                </p>
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://github.com/dorofi/url-checker" class="btn" target="_blank">⭐ Star on GitHub</a>
+                    <a href="https://github.com/dorofi/url-checker" class="btn btn-secondary" target="_blank">📖 View Documentation</a>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>📈 Project Stats</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="number">100%</div>
+                        <div class="label">Open Source</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">🦀</div>
+                        <div class="label">Rust Powered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">⚡</div>
+                        <div class="label">Async & Fast</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">🌍</div>
+                        <div class="label">Cross-Platform</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">🖥️</div>
+                        <div class="label">CLI + GUI</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">📊</div>
+                        <div class="label">JSON + CSV</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Made with ❤️ by <a href="https://github.com/dorofi" style="color: white;">dorofi</a></p>
+            <p style="margin-top: 10px; opacity: 0.8;">
+                <a href="https://github.com/dorofi/url-checker" style="color: white; text-decoration: none;">GitHub</a> | 
+                <a href="mailto:dorofii.2005@gmail.com" style="color: white; text-decoration: none;">Contact</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
+
