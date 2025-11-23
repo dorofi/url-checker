@@ -39,11 +39,26 @@ struct ResultRow {
     status: String,
     reason: String,
     time_ms: u128,
+    size_bytes: u64,
+    timestamp: String,
+}
+
+struct Stats {
+    total: usize,
+    up: usize,
+    down: usize,
+    total_time: u128,
+    min_time: u128,
+    max_time: u128,
+    total_size: u64,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    
+    // Print professional header
+    print_header(&args);
 
     let urls = read_lines(&args.input)
         .with_context(|| format!("Failed to read file {}", &args.input))?
@@ -59,22 +74,26 @@ async fn main() -> Result<()> {
         .collect::<Vec<_>>();
 
     if urls.is_empty() {
-        println!("File {} is empty or contains no URLs. Exiting.", &args.input);
+        eprintln!("{} File {} is empty or contains no URLs. Exiting.", "✗".red(), &args.input);
         return Ok(());
     }
+
+    println!("{} Found {} URL(s) to check\n", "ℹ".cyan(), urls.len().to_string().bold());
 
     let client = Client::builder()
         .timeout(Duration::from_secs(args.timeout))
         .user_agent("url-checker/0.2")
         .build()?;
 
-    // Progress bar
+    // Progress bar with better styling
     let pb = ProgressBar::new(urls.len() as u64);
     pb.set_style(
         ProgressStyle::default_bar()
-            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
-            .unwrap(),
+            .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({percent}%) {msg}")
+            .unwrap()
+            .progress_chars("█▉▊▋▌▍▎▏  "),
     );
+    pb.set_message("Checking URLs...");
 
     // Asynchronously check all URLs
     let results = stream::iter(urls.into_iter().map(|url| {
@@ -90,52 +109,120 @@ async fn main() -> Result<()> {
     .collect::<Vec<_>>()
     .await;
 
-    pb.finish_with_message("Check complete");
+    pb.finish_with_message("✓ Complete");
 
-    // Write to CSV
-    let mut wtr = Writer::from_path(&args.output)
-        .with_context(|| format!("Could not open {} for writing", &args.output))?;
-    wtr.write_record(&["url", "status", "reason", "time_ms"])?;
+    // Process results and collect stats
+    let file = File::create(&args.output)
+        .with_context(|| format!("Could not create {} for writing", &args.output))?;
+    let mut wtr = Writer::from_writer(file);
 
-    let mut total = 0usize;
-    let mut up = 0usize;
-    let mut down = 0usize;
+    let mut stats = Stats {
+        total: 0,
+        up: 0,
+        down: 0,
+        total_time: 0,
+        min_time: u128::MAX,
+        max_time: 0,
+        total_size: 0,
+    };
+
+    // Print table header
+    println!("\n{}", "─".repeat(100).bright_black());
+    println!("{:<50} {:<8} {:<12} {:<10} {}", 
+        "URL".bold(), 
+        "STATUS".bold(), 
+        "TIME (ms)".bold(), 
+        "SIZE".bold(),
+        "RESULT".bold()
+    );
+    println!("{}", "─".repeat(100).bright_black());
 
     for r in results {
         match r {
             Ok(row) => {
                 wtr.serialize(&row)?;
-                total += 1;
-                if row.status.starts_with('2') || row.status.starts_with('3') {
-                    println!("{} {} ({} ms)", row.url, row.status.green(), row.time_ms);
-                    up += 1;
+                stats.total += 1;
+                stats.total_time += row.time_ms;
+                stats.total_size += row.size_bytes;
+                
+                if row.time_ms < stats.min_time {
+                    stats.min_time = row.time_ms;
+                }
+                if row.time_ms > stats.max_time {
+                    stats.max_time = row.time_ms;
+                }
+
+                let (status_color, status_icon, result_text) = if row.status.starts_with('2') {
+                    (row.status.green().bold(), "✓".green(), "OK".green())
+                } else if row.status.starts_with('3') {
+                    (row.status.yellow().bold(), "↻".yellow(), "REDIRECT".yellow())
+                } else if row.status.starts_with('4') {
+                    (row.status.red().bold(), "✗".red(), "CLIENT ERROR".red())
+                } else if row.status.starts_with('5') {
+                    (row.status.red().bold(), "✗".red(), "SERVER ERROR".red())
                 } else {
-                    println!("{} {} ({} ms)", row.url, row.status.red(), row.time_ms);
-                    down += 1;
+                    (row.status.normal(), "?".normal(), "UNKNOWN".normal())
+                };
+
+                let size_str = format_size(row.size_bytes);
+                let url_display = if row.url.len() > 48 {
+                    format!("{}...", &row.url[..45])
+                } else {
+                    row.url.clone()
+                };
+
+                println!("{:<50} {:<8} {:<12} {:<10} {} {}",
+                    url_display,
+                    status_color,
+                    format!("{}", row.time_ms).bright_white(),
+                    size_str.bright_white(),
+                    status_icon,
+                    result_text
+                );
+
+                if row.status.starts_with('2') || row.status.starts_with('3') {
+                    stats.up += 1;
+                } else {
+                    stats.down += 1;
                 }
             }
             Err((url, err_msg)) => {
+                let timestamp = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string();
                 wtr.serialize(&ResultRow {
                     url: url.clone(),
                     status: "ERROR".to_string(),
                     reason: err_msg.clone(),
                     time_ms: 0,
+                    size_bytes: 0,
+                    timestamp,
                 })?;
-                println!("{} {}", url, "ERROR".red());
-                total += 1;
-                down += 1;
+                
+                let url_display = if url.len() > 48 {
+                    format!("{}...", &url[..45])
+                } else {
+                    url.clone()
+                };
+
+                println!("{:<50} {:<8} {:<12} {:<10} {} {}",
+                    url_display,
+                    "ERROR".red().bold(),
+                    "N/A".bright_black(),
+                    "N/A".bright_black(),
+                    "✗".red(),
+                    "FAILED".red()
+                );
+                
+                stats.total += 1;
+                stats.down += 1;
             }
         }
     }
 
     wtr.flush()?;
-    println!(
-        "\nDone. total: {}, {} up, {} down. Report: {}",
-        total,
-        up.to_string().green(),
-        down.to_string().red(),
-        args.output
-    );
+    
+    // Print statistics
+    print_statistics(&stats, &args.output);
+    
     Ok(())
 }
 
@@ -159,13 +246,94 @@ async fn check_url(client: Client, url: String) -> Result<ResultRow, (String, St
         Ok(r) => {
             let status = r.status().as_u16().to_string();
             let reason = r.status().canonical_reason().unwrap_or("").to_string();
+            
+            // Try to get content length
+            let size_bytes = r.content_length().unwrap_or(0);
+            
+            let timestamp = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string();
+            
             Ok(ResultRow {
                 url,
                 status,
                 reason,
                 time_ms: elapsed,
+                size_bytes,
+                timestamp,
             })
         }
         Err(e) => Err((url, format!("{}", e))),
+    }
+}
+
+// Print professional header
+fn print_header(args: &Args) {
+    println!("\n{}", "═".repeat(100).bright_blue().bold());
+    println!("{}", "  URL CHECKER - Professional Web Status Monitor".bright_cyan().bold());
+    println!("{}", "═".repeat(100).bright_blue().bold());
+    println!("{} Input file:  {}", "•".bright_cyan(), args.input.bright_white());
+    println!("{} Output file: {}", "•".bright_cyan(), args.output.bright_white());
+    println!("{} Concurrency: {}", "•".bright_cyan(), args.concurrency.to_string().bright_white());
+    println!("{} Timeout:     {}s", "•".bright_cyan(), args.timeout.to_string().bright_white());
+    println!("{}", "═".repeat(100).bright_blue().bold());
+}
+
+// Print statistics
+fn print_statistics(stats: &Stats, output_file: &str) {
+    println!("{}", "─".repeat(100).bright_black());
+    println!("\n{}", "📊 STATISTICS".bright_cyan().bold());
+    println!("{}", "─".repeat(100).bright_black());
+    
+    let success_rate = if stats.total > 0 {
+        (stats.up as f64 / stats.total as f64) * 100.0
+    } else {
+        0.0
+    };
+    
+    let avg_time = if stats.up > 0 {
+        stats.total_time / stats.up as u128
+    } else {
+        0
+    };
+
+    println!("{} Total URLs checked:    {}", "  •".bright_cyan(), stats.total.to_string().bold().white());
+    println!("{} Successful (2xx/3xx):  {}", "  •".bright_cyan(), format!("{} ({:.1}%)", stats.up, success_rate).green().bold());
+    println!("{} Failed/Errors:         {}", "  •".bright_cyan(), format!("{} ({:.1}%)", stats.down, 100.0 - success_rate).red().bold());
+    println!();
+    
+    if stats.min_time != u128::MAX {
+        println!("{} Average response time: {}", "  •".bright_cyan(), format!("{} ms", avg_time).bright_white().bold());
+        println!("{} Fastest response:     {}", "  •".bright_cyan(), format!("{} ms", stats.min_time).green().bold());
+        println!("{} Slowest response:     {}", "  •".bright_cyan(), format!("{} ms", stats.max_time).red().bold());
+    } else {
+        println!("{} Average response time: {}", "  •".bright_cyan(), "N/A".bright_black());
+        println!("{} Fastest response:     {}", "  •".bright_cyan(), "N/A".bright_black());
+        println!("{} Slowest response:     {}", "  •".bright_cyan(), "N/A".bright_black());
+    }
+    println!("{} Total data received:  {}", "  •".bright_cyan(), format_size(stats.total_size).bright_white().bold());
+    println!();
+    println!("{} Report saved to:      {}", "  •".bright_cyan(), output_file.bright_white().bold());
+    println!("{}", "─".repeat(100).bright_black());
+    println!();
+}
+
+// Format file size
+fn format_size(bytes: u64) -> String {
+    if bytes == 0 {
+        return "N/A".to_string();
+    }
+    
+    const UNITS: &[&str] = &["B", "KB", "MB", "GB"];
+    let mut size = bytes as f64;
+    let mut unit_index = 0;
+    
+    while size >= 1024.0 && unit_index < UNITS.len() - 1 {
+        size /= 1024.0;
+        unit_index += 1;
+    }
+    
+    if unit_index == 0 {
+        format!("{} {}", bytes, UNITS[unit_index])
+    } else {
+        format!("{:.2} {}", size, UNITS[unit_index])
     }
 }
